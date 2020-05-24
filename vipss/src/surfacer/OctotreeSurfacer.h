@@ -32,9 +32,12 @@ public:
     bool end;
     bool split;
     bool visited = false;
-    vector<int> signs;
+    vector<int> corner_signs;
+    vector<int> face_signs;
 
-    vector<int> get_signs();
+    vector<int> get_signs(bool prevent);
+
+    void update_surround_signs();
 
     bool intersect();
 
@@ -73,6 +76,7 @@ public:
     function<double(tuple<double, double, double>)> implicitFunction;
     vector<double> vertices;
     vector<int> triangleFaces;
+    vector<np> cubes;
 
     np octroot;
 

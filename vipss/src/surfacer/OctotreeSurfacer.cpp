@@ -44,6 +44,8 @@ OctotreeSurfacer::OctotreeSurfacer(const vector<double> &inputPoints,
         }
     }
     for (int i = 0; i < 3; i++) {
+        upper[i] += 0.05;
+        lower[i] -= 0.05;
         step.push_back((upper[i] - lower[i]) / (double) n_voxels_1d);
 //        cout<<upper[i]<<" "<<lower[i]<<" "<<step[i]<<endl;
     }
@@ -67,23 +69,8 @@ double OctotreeSurfacer::get_function_value(tuple<int, int, int> idx) {
 void OctotreeSurfacer::Surfacing() {
     mem.clear();
     octroot->Surfacing(nullptr);
-//    for (auto p:face_node[0]) {
-//        auto r = p.second->range;
-//        if (p.second->split == false) {
-//            for (auto x:vector<vector<int>>({{0, 2, 4},
-//                                             {0, 2, 5},
-//                                             {0, 3, 4},
-//                                             {0, 3, 5},
-//                                             {1, 2, 4},
-//                                             {1, 2, 5},
-//                                             {1, 3, 4},
-//                                             {1, 3, 5}})) {
-//                for (int i = 0; i < 3; i++)
-//                    out << r[x[i]] * step[i] + lower[i] << " ";
-//                out << endl;
-//            }
-//        }
-//    }
+
+
 }
 
 tuple<double, double, double> OctotreeSurfacer::idx_to_coord(double x, double y, double z) {
@@ -128,9 +115,9 @@ OctNode::OctNode(OctotreeSurfacer *surfacer, np father, const vector<int> &range
     for (auto &p:ps) {
         auto dp = p[1] - p[0];
         if (dp > 1) {
-            if (dp % 2 == 1) {
-                p.insert(p.begin() + 1, p[0] + dp / 2 + 1);
-            }
+//            if (dp % 2 == 1) {
+//                p.insert(p.begin() + 1, p[0] + dp / 2 + 1);
+//            }
             p.insert(p.begin() + 1, p[0] + dp / 2);
             end = false;
         }
@@ -148,6 +135,39 @@ OctNode::OctNode(OctotreeSurfacer *surfacer, np father, const vector<int> &range
     for (int i = 0; i < 6; i++) {
         surfacer->face_node[i][get_face(i)] = this;
     }
+    for (int i = 0; i < 8; i++) {
+        corner_signs.push_back(0);
+    }
+    int d = 0;
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                auto v = surfacer->get_function_value({ps[0][i], ps[1][j], ps[2][k]});
+                if (equal(v, 0)) {
+                    corner_signs[d] |= 3;
+                } else if (v < 0) {
+                    corner_signs[d] |= 2;
+                } else if (v > 0) {
+                    corner_signs[d] |= 1;
+                }
+                d++;
+            }
+        }
+    }
+
+    for (int i = 0; i < 6; i++)
+        face_signs.push_back(0);
+
+    int idx[6][4] = {{4, 5, 6, 7},
+                     {0, 1, 2, 3},
+                     {2, 3, 6, 7},
+                     {0, 1, 4, 5},
+                     {1, 3, 5, 7},
+                     {0, 2, 4, 6}};
+    for (int i = 0; i < 6; i++)
+        for (int j = 0; j < 4; j++)
+            face_signs[i] |= corner_signs[idx[i][j]];
+
 
 }
 
@@ -213,6 +233,7 @@ void OctNode::debug(int d) {
 void OctNode::Surfacing(np caller) {
     if (split)
         return;
+
     visited = true;
     bool intersect_with_surface = intersect();
 
@@ -242,15 +263,18 @@ void OctNode::Surfacing(np caller) {
                 }
             }
 
-            bool splited = true;
-            while (splited) {
-                splited = false;
-                for (auto s:sons) {
-                    if (!s->split) {
-                        s->Surfacing(this);
-                        splited = s->split;
-                    }
-                }
+//            bool splited = true;
+//            while (splited) {
+//                splited = false;
+//                for (auto s:sons) {
+//                    if (!s->split) {
+//                        s->Surfacing(this);
+//                        splited = s->split;
+//                    }
+//                }
+//            }
+            for (auto s:sons) {
+                s->Surfacing(this);
             }
 
 
@@ -259,22 +283,22 @@ void OctNode::Surfacing(np caller) {
                 for (int j = 0; j < ps[1].size() - 1; j++) {
                     for (int k = 0; k < ps[2].size() - 1; k++) {
                         if (i == 0) {
-                            signs[1] |= sons[d]->get_signs()[1];
+                            face_signs[1] |= sons[d]->get_signs(false)[1];
                         }
                         if (i == ps[0].size() - 2) {
-                            signs[0] |= sons[d]->get_signs()[0];
+                            face_signs[0] |= sons[d]->get_signs(false)[0];
                         }
                         if (j == 0) {
-                            signs[3] |= sons[d]->get_signs()[3];
+                            face_signs[3] |= sons[d]->get_signs(false)[3];
                         }
                         if (j == ps[1].size() - 2) {
-                            signs[2] |= sons[d]->get_signs()[2];
+                            face_signs[2] |= sons[d]->get_signs(false)[2];
                         }
                         if (k == 0) {
-                            signs[5] |= sons[d]->get_signs()[5];
+                            face_signs[5] |= sons[d]->get_signs(false)[5];
                         }
                         if (k == ps[2].size() - 2) {
-                            signs[4] |= sons[d]->get_signs()[4];
+                            face_signs[4] |= sons[d]->get_signs(false)[4];
                         }
                         d++;
                     }
@@ -284,6 +308,14 @@ void OctNode::Surfacing(np caller) {
             if (caller != father) {
                 father->update_sign(this);
             }
+//            auto neighbors = surfacer->get_neighbors(this);
+//            for (int i = 0; i < 6; i++) {
+//                if (neighbors[i] != nullptr) {
+//                    neighbors[i]->get_signs(false);
+//                    neighbors[i]->signs[i ^ 1] |= signs[i];
+//                }
+//            }
+
             for (auto n:surfacer->get_neighbors(this)) {
                 if (n != nullptr && n->visited && n->split == false) {
 //                    for (int i = 0; i < 6; i++) {
@@ -301,20 +333,22 @@ void OctNode::Surfacing(np caller) {
         } else {
             if (intersect_with_surface == true) {
 //                cout << "*" << endl;
+//                surfacer->cubes.push_back(this);
                 for (int i = 0; i < 3; i++) {
                     surfacer->out << surfacer->lower[i] + (ps[i][0] + ps[i][1]) / 2. * surfacer->step[i] << " ";
                 }
                 surfacer->out << endl;
             }
         }
-    } else {
-        if (containInput == true) {
-            for (auto x:range) {
-                cout << x << " ";
-            }
-            cout << endl;
-        }
     }
+//    else {
+//        if (containInput == true) {
+//            for (auto x:range) {
+//                cout << x << " ";
+//            }
+//            cout << endl;
+//        }
+//    }
 }
 
 tuple<int, int, int, int, int> OctNode::get_face(int dir) {
@@ -349,45 +383,21 @@ auto to_vector(const std::tuple<first_type, others...> &t) {
     return to_vector_helper<first_type, tuple_type>(t, std::make_index_sequence<s>{});
 }
 
-vector<int> OctNode::get_signs() {
-    if (signs.empty()) {
+vector<int> OctNode::get_signs(bool prevent) {
+    if (prevent == false) {
         for (int i = 0; i < 6; i++) {
-            auto f = to_vector(get_face(i));
-            int sign = 0;
-            for (auto x:vector<vector<int>>({{1, 3},
-                                             {1, 4},
-                                             {2, 3},
-                                             {2, 4}})) {
-                double v = 0;
-                if (i >= 0 && i < 2)
-                    v = surfacer->get_function_value({f[0], f[x[0]], f[x[1]]});
-                else if (i >= 2 && i < 4)
-                    v = surfacer->get_function_value({f[x[0]], f[0], f[x[1]]});
-                else if (i >= 4 && i < 6)
-                    v = surfacer->get_function_value({f[x[0]], f[x[1]], f[0]});
-
-                if (equal(v, 0)) {
-                    sign = 3;
-                    break;
-                } else if (v < 0) {
-                    sign |= 2;
-                } else if (v > 0) {
-                    sign |= 1;
-                }
-            }
             auto neighbor = surfacer->get_np_by_face(this, i);
             if (neighbor != nullptr && neighbor->split) {
-                sign |= neighbor->get_signs()[i ^ 1];
+                face_signs[i] |= neighbor->get_signs(true)[i ^ 1];
             }
-            signs.push_back(sign);
         }
     }
-    return signs;
+    return face_signs;
 }
 
 bool OctNode::intersect() {
     int re = 0;
-    for (auto s:get_signs()) {
+    for (auto s:get_signs(false)) {
         re |= s;
     }
     return re == 3;
@@ -401,22 +411,22 @@ void OctNode::update_sign(np sonp) {
             for (int k = 0; k < ps[2].size() - 1; k++) {
                 if (sons[d] == sonp) {
                     if (i == 0) {
-                        signs[1] |= sons[d]->get_signs()[1];
+                        face_signs[1] |= sons[d]->get_signs(false)[1];
                     }
                     if (i == ps[0].size() - 2) {
-                        signs[0] |= sons[d]->get_signs()[0];
+                        face_signs[0] |= sons[d]->get_signs(false)[0];
                     }
                     if (j == 0) {
-                        signs[3] |= sons[d]->get_signs()[3];
+                        face_signs[3] |= sons[d]->get_signs(false)[3];
                     }
                     if (j == ps[1].size() - 2) {
-                        signs[2] |= sons[d]->get_signs()[2];
+                        face_signs[2] |= sons[d]->get_signs(false)[2];
                     }
                     if (k == 0) {
-                        signs[5] |= sons[d]->get_signs()[5];
+                        face_signs[5] |= sons[d]->get_signs(false)[5];
                     }
                     if (k == ps[2].size() - 2) {
-                        signs[4] |= sons[d]->get_signs()[4];
+                        face_signs[4] |= sons[d]->get_signs(false)[4];
                     }
                     if (father != nullptr) {
                         father->update_sign(this);
@@ -426,6 +436,13 @@ void OctNode::update_sign(np sonp) {
                 d++;
             }
         }
+    }
+}
+
+void OctNode::update_surround_signs() {
+    auto neighbors = surfacer->get_neighbors(this);
+    for (int i = 0; i < 6; i++) {
+
     }
 }
 
