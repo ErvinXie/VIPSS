@@ -29,11 +29,10 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(cloud_viewer cloud_viewer.cpp)
 target_link_libraries(cloud_viewer ${PCL_LIBRARIES})
 
 
-add_executable(oct-test oct-test.cpp ./src/surfacer/OctotreeSurfacer.cpp)
+add_executable(octree-test octree-test.cpp ./src/surfacer/OctotreeSurfacer.cpp)
 
 
 

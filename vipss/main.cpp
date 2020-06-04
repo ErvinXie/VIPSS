@@ -12,9 +12,11 @@ void SplitFileName(const std::string &fullfilename, std::string &filepath, std::
 
 RBF_Paras Set_RBF_PARA();
 
+//ofstream debug_output;
+
 int main(int argc, char **argv) {
     cout << argc << endl;
-
+//    debug_output.open("./debug_out.txt", ios::app);
 
     string infilename;
     string outpath, pcname, ext, inpath;
@@ -25,10 +27,11 @@ int main(int argc, char **argv) {
 
     bool is_surfacing = false;
     bool is_outputtime = false;
+    int surfacing_method = 1;
 
     int c;
     optind = 1;
-    while ((c = getopt(argc, argv, "i:o:l:s:t")) != -1) {
+    while ((c = getopt(argc, argv, "i:o:l:s:tm:")) != -1) {
         switch (c) {
             case 'i':
                 infilename = optarg;
@@ -38,13 +41,18 @@ int main(int argc, char **argv) {
                 break;
             case 'l':
                 user_lambda = atof(optarg);
+                printf("%s\n", optarg);
                 break;
             case 's':
                 is_surfacing = true;
                 n_voxel_line = atoi(optarg);
+                printf("%s\n", optarg);
                 break;
             case 't':
                 is_outputtime = true;
+                break;
+            case 'm':
+                surfacing_method = atoi(optarg);
                 break;
             case '?':
                 cout << "Bad argument setting!" << endl;
@@ -59,6 +67,8 @@ int main(int argc, char **argv) {
 
     cout << "user lambda: " << user_lambda << endl;
     cout << "is surfacing: " << is_surfacing << endl;
+    cout << "surfacing method: " << map<int, string>({{0, "Bloomenthal"},
+                                                      {1, "Adaptive Octree"}})[surfacing_method] << endl;
 
     cout << "number of voxel per D: " << n_voxel_line << endl;
 
@@ -77,10 +87,17 @@ int main(int argc, char **argv) {
 
     rbf_core.Write_Hermite_NormalPrediction(outpath + pcname + "_normal", 1);
 
+//
+//    debug_output << endl;
+//    debug_output << infilename << endl;
+//    debug_output << "method: " << surfacing_method << endl;
+//    debug_output << "resolution: " << n_voxel_line << endl;
     if (is_surfacing) {
-        rbf_core.Surfacing(1, n_voxel_line);
+        rbf_core.Surfacing(surfacing_method, n_voxel_line);
         rbf_core.Write_Surface(outpath + pcname + "_surface");
     }
+
+
 
     if (is_outputtime) {
         rbf_core.Print_TimerRecord_Single(outpath + pcname + "_time.txt");

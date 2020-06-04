@@ -105,17 +105,19 @@ void RBF_Core::Surfacing(int method, int n_voxels_1d) {
             return RBF_Core::Dist_Function(get<0>(p), get<1>(p), get<2>(p));
         }, n_voxels_1d);
         surfacer.Surfacing();
-
+        finalMesh_v = surfacer.vertices;
+        finalMesh_fv = surfacer.triangleFaces;
         cout << "Implicit Surfacing Done." << endl;
         auto t2 = Clock::now();
         cout << "Total Surfacing time: " << (re_time = std::chrono::nanoseconds(t2 - t1).count() / 1e9) << endl;
         surf_time = re_time;
-
-
+//        debug_output << "Node count:" << surfacer.face_node[0].size() << endl;
     }
-
     cout << "n_evacalls: " << n_evacalls << "   ave: " << surf_time / n_evacalls << endl;
-
+//    debug_output << "Surfacing time:" << surf_time << endl;
+//    debug_output << "Implicit function calls:" << n_evacalls << endl;
+//    debug_output << "Vertices:" << finalMesh_v.size() / 3 << endl;
+//    debug_output << "Faces:" << finalMesh_fv.size() / 3 << endl;
 
 }
 

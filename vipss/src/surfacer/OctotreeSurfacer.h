@@ -26,7 +26,9 @@ public:
 
     OctotreeSurfacer *surfacer;
     vector<int> range;
-    vector<vector<int> > ps;
+    vector<vector<int> > point_seg, corner;
+    vector<vector<int> > mc_point;
+
 
     bool containInput;
     bool end;
@@ -43,7 +45,6 @@ public:
 
     void update_sign(np sonp);
 
-
     np father;
 
     vector<np> sons;
@@ -55,6 +56,7 @@ public:
 
     void addInputPoint(double ix, double iy, double iz);
 
+    int get_mc_idx();
 
     void Surfacing(np caller);
 
@@ -75,7 +77,7 @@ public:
 
     function<double(tuple<double, double, double>)> implicitFunction;
     vector<double> vertices;
-    vector<int> triangleFaces;
+    vector<uint> triangleFaces;
     vector<np> cubes;
 
     np octroot;
@@ -104,6 +106,11 @@ public:
 
     void Surfacing();
 
+    void polygonize();
+
+    map<vector<int>, int> interpolant_point;
+
+    int get_interpolant_point(vector<int> a, vector<int> b);
 };
 
 

@@ -21,7 +21,7 @@
 ./vipss -i ../data/wireframes/doghead/input.xyz -l 0 -s 100
 ./vipss -i ../data/wireframes/phone/input.xyz -l 0 -s 100
 ./vipss -i ../data/wireframes/trebol/input.xyz -l 0 -s 100
-./vipss -i ../data/wireframes/spring/input.xyz -l 0 -s 100
+-
 ./vipss -i ../data/surfaces_500/vertebra/input.xyz -l 0 -s 100
 ./vipss -i ../data/surfaces_500/hand/input.xyz -l 0 -s 100
 
