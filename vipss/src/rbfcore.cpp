@@ -14,26 +14,16 @@ double sigma = 2.0;
 double inv_sigma_squarex2 = 1 / (2 * pow(sigma, 2));
 
 double Gaussian_Kernel(const double x_square) {
-
     return exp(-x_square * inv_sigma_squarex2);
-
 }
 
 double Gaussian_Kernel_2p(const double *p1, const double *p2) {
-
-
     return Gaussian_Kernel(MyUtility::vecSquareDist(p1, p2));
-
-
 }
 
 double Gaussian_PKernel_Dirichlet_2p(const double *p1, const double *p2) {
-
-
     double d2 = MyUtility::vecSquareDist(p1, p2);
     return (6 * sigma * sigma - d2) * sqrt(Gaussian_Kernel(d2));
-
-
 }
 
 double Gaussian_PKernel_Bending_2p(const double *p1, const double *p2) {
@@ -63,9 +53,9 @@ double XCube_Kernel_2p(const double *p1, const double *p2) {
 
 void XCube_Gradient_Kernel_2p(const double *p1, const double *p2, double *G) {
 
-
     double len_dist = MyUtility::_VerticesDistance(p1, p2);
-    for (int i = 0; i < 3; ++i)G[i] = 3 * len_dist * (p1[i] - p2[i]);
+    for (int i = 0; i < 3; ++i)
+        G[i] = 3 * len_dist * (p1[i] - p2[i]);
     return;
 
 }
@@ -130,6 +120,7 @@ RBF_Core::RBF_Core() {
     mp_RBF_INITMETHOD.insert(make_pair(LocalEigen, "LocalEigen"));
     mp_RBF_INITMETHOD.insert(make_pair(IterativeEigen, "IterativeEigen"));
     mp_RBF_INITMETHOD.insert(make_pair(ClusterEigen, "ClusterEigen"));
+    mp_RBF_INITMETHOD.insert(make_pair(Lamnbda_Search, "LamnbdaSearch"));
 
 
     mp_RBF_METHOD.insert(make_pair(Variational, "Variational"));
@@ -200,31 +191,37 @@ inline double RBF_Core::Dist_Function(const double *p) {
     if (isHermite) {
         kern.set_size(npt * 4);
         double G[3];
-        for (int i = 0; i < npt; ++i)kern(i) = Kernal_Function_2p(p_pts + i * 3, p);
         for (int i = 0; i < npt; ++i) {
+            kern(i) = Kernal_Function_2p(p_pts + i * 3, p);
             Kernal_Gradient_Function_2p(p, p_pts + i * 3, G);
             //for(int j=0;j<3;++j)kern(npt+i*3+j) = -G[j];
-            for (int j = 0; j < 3; ++j)kern(npt + i + j * npt) = G[j];
+            for (int j = 0; j < 3; ++j)
+                kern(npt + i + j * npt) = G[j];
         }
     } else {
         kern.set_size(npt);
-        for (int i = 0; i < npt; ++i)kern(i) = Kernal_Function_2p(p_pts + i * 3, p);
+        for (int i = 0; i < npt; ++i)
+            kern(i) = Kernal_Function_2p(p_pts + i * 3, p);
     }
 
     double loc_part = dot(kern, a);
 
     if (polyDeg == 1) {
         kb.set_size(4);
-        for (int i = 0; i < 3; ++i)kb(i + 1) = p[i];
+        for (int i = 0; i < 3; ++i)
+            kb(i + 1) = p[i];
         kb(0) = 1;
     } else if (polyDeg == 2) {
         vector<double> buf(4, 1);
         int ind = 0;
         kb.set_size(10);
         for (int j = 0; j < 3; ++j)buf[j + 1] = p[j];
-        for (int j = 0; j < 4; ++j)for (int k = j; k < 4; ++k)kb(ind++) = buf[j] * buf[k];
+        for (int j = 0; j < 4; ++j)
+            for (int k = j; k < 4; ++k)
+                kb(ind++) = buf[j] * buf[k];
     }
     double poly_part = dot(kb, b);
+
 
     if (0) {
         cout << "dist: " << p[0] << ' ' << p[1] << ' ' << p[2] << ' ' << p_pts[3] << ' ' << p_pts[4] << ' ' << p_pts[5]

@@ -91,15 +91,13 @@ class RBF_Core{
 
 public:
 
-
-
     int npt;
     int polyDeg = 2;
     int bsize;
 
     bool isinv = true;
     bool isnewformula = true;
-    double User_Lamnbda;
+    double User_Lambda;
 
     RBF_Kernal kernal;
     RBF_METHOD curMethod;
@@ -140,9 +138,9 @@ public:
     arma::vec a;
     arma::vec b;
 
-    arma::mat Minv;
+    arma::mat Minv; // J
     arma::mat P;
-    arma::mat K;
+    arma::mat K; // J
     arma::mat bprey;
     arma::mat saveK;
     arma::mat saveK_finalH;
@@ -150,12 +148,12 @@ public:
 
     arma::mat RQ;
 
-    arma::mat bigM;
-    arma::mat bigMinv;
-    arma::mat Ninv;
-    arma::mat K00;
-    arma::mat K01;
-    arma::mat K11;
+    arma::mat bigM; // A
+    arma::mat bigMinv; // A inv
+    arma::mat Ninv; // K
+    arma::mat K00; // J00
+    arma::mat K01; // J01
+    arma::mat K11; // J11
     arma::mat dI;
 
 
@@ -239,7 +237,7 @@ public:
     int Solve_Hermite_PredictNormal_UnitNorm();
 
 
-    int Lamnbda_Search_GlobalEigen();
+    int Lambda_Search_GlobalEigen();
 
 
 public:
@@ -256,8 +254,8 @@ public:
 
     void Set_RBFCoef(arma::vec &y);
 
-    void Set_Actual_Hermite_LSCoef(double hermite_ls);
-    void Set_HermiteApprox_Lamnda(double hermite_ls);
+    void Set_Actual_Hermite_LSCoef(double  hermite_ls);
+    void Set_HermiteApprox_Lambda(double hermite_ls);
     void Set_Actual_User_LSCoef(double user_ls);
     void Set_User_Lamnda_ToMatrix(double user_ls);
 

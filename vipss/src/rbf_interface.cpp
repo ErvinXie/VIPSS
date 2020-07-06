@@ -47,19 +47,15 @@ void RBF_Core::BuildK(RBF_Paras para) {
 
 void RBF_Core::InitNormal(RBF_Paras para) {
 
-
     auto t1 = Clock::now();
     curInitMethod = para.InitMethod;
     cout << "Init Method: " << mp_RBF_INITMETHOD[curInitMethod] << endl;
     switch (curInitMethod) {
-
         case Lamnbda_Search:
-            Lamnbda_Search_GlobalEigen();
+            Lambda_Search_GlobalEigen();
             break;
 
     }
-
-
     auto t2 = Clock::now();
     cout << "Init Time: " << (init_time = std::chrono::nanoseconds(t2 - t1).count() / 1e9) << endl << endl;
 
@@ -72,9 +68,7 @@ void RBF_Core::OptNormal(int method) {
     cout << "OptNormal" << endl;
     auto t1 = Clock::now();
 
-
     switch (curMethod) {
-
         case Hermite_UnitNormal:
             Opt_Hermite_PredictNormal_UnitNormal();
             break;
@@ -82,7 +76,8 @@ void RBF_Core::OptNormal(int method) {
     }
     auto t2 = Clock::now();
     cout << "Opt Time: " << (solve_time = std::chrono::nanoseconds(t2 - t1).count() / 1e9) << endl << endl;
-    if (method == 0)mp_RBF_OptNormal[curMethod == HandCraft ? 0 : 1][curInitMethod] = newnormals;
+    if (method == 0)
+        mp_RBF_OptNormal[curMethod == HandCraft ? 0 : 1][curInitMethod] = newnormals;
 }
 
 
@@ -148,7 +143,7 @@ int RBF_Core::InjectData(vector<double> &pts, vector<int> &labels, vector<double
     curInitMethod = para.InitMethod;
 
     polyDeg = para.polyDeg;
-    User_Lamnbda = para.user_lamnbda;
+    User_Lambda = para.user_lamnbda;
     rangevalue = para.rangevalue;
     maxvalue = 10000;
 

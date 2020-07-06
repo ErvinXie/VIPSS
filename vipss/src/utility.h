@@ -58,7 +58,8 @@ inline T dot(const T *e1,const T *e2,const int dim = 3){
 template <class T>
 inline T normalize(T *face_normal,const int dim = 3){
     T len = sqrt(dot(face_normal,face_normal,dim));
-    for(int i =0;i<dim;++i)face_normal[i] /= len;
+    for(int i =0;i<dim;++i)
+        face_normal[i] /= len;
     return len;
 }
 template <class T>

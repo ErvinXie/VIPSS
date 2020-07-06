@@ -29,8 +29,6 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-target_link_libraries(cloud_viewer ${PCL_LIBRARIES})
-
 
 add_executable(octree-test octree-test.cpp ./src/surfacer/OctotreeSurfacer.cpp)
 
