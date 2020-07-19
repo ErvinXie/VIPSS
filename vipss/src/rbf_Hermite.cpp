@@ -108,8 +108,10 @@ void RBF_Core::Set_HermiteRBF(vector<double> &pts) {
             //            for(int k=0;k<3;++k)M(i,jind+k) = -G[k];
             //            for(int k=0;k<3;++k)M(jind+k,i) = G[k];
 
-            for (int k = 0; k < 3; ++k)M(i, npt + j + k * npt) = G[k];
-            for (int k = 0; k < 3; ++k)M(npt + j + k * npt, i) = G[k];
+            for (int k = 0; k < 3; ++k)
+                M(i, npt + j + k * npt) = G[k];
+            for (int k = 0; k < 3; ++k)
+                M(npt + j + k * npt, i) = G[k];
 
         }
     }
@@ -127,7 +129,9 @@ void RBF_Core::Set_HermiteRBF(vector<double> &pts) {
 
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
-                    M(npt + j + l * npt, npt + i + k * npt) = M(npt + i + k * npt, npt + j + l * npt) = -H[k * 3 + l];
+                    M(npt + j + l * npt, npt + i + k * npt)
+                            = M(npt + i + k * npt, npt + j + l * npt)
+                            = -H[k * 3 + l];
         }
     }
 
@@ -139,13 +143,14 @@ void RBF_Core::Set_HermiteRBF(vector<double> &pts) {
 
     for (int i = 0; i < npt; ++i) {
         N(i, 0) = 1;
-        for (int j = 0; j < 3; ++j)N(i, j + 1) = pts[i * 3 + j];
+        for (int j = 0; j < 3; ++j)
+            N(i, j + 1) = pts[i * 3 + j];
     }
     for (int i = 0; i < npt; ++i) {
         //        int ind = i*3+npt;
         //        for(int j=0;j<3;++j)N(ind+j,j+1) = 1;
-
-        for (int j = 0; j < 3; ++j)N(npt + i + j * npt, j + 1) = -1;
+        for (int j = 0; j < 3; ++j)
+            N(npt + i + j * npt, j + 1) = -1;
     }
 
     //cout<<N<<endl;
@@ -203,22 +208,20 @@ void RBF_Core::Set_SparsePara(double spa) {
 }
 
 void RBF_Core::Set_User_Lamnda_ToMatrix(double user_ls) {
-
-
     {
         Set_Actual_User_LSCoef(user_ls);
         auto t1 = Clock::now();
-        cout << "setting K, User_Lambda" << endl;
+        cout << "setting J, User_Lambda" << endl;
         if (User_Lambda > 0) {
             arma::sp_mat eye;
             eye.eye(npt, npt);
 
-            dI = inv(eye + User_Lambda * K00);
-            saveK_finalH = K = K11 - (User_Lambda) * (K01.t() * dI * K01);
-        } else saveK_finalH = K = K11;
+            dI = inv(eye + User_Lambda * J00);
+            saveJ_finalH = J = J11 - (User_Lambda) * (J01.t() * dI * J01);
+        } else saveJ_finalH = J = J11;
         cout << "solved: " << (std::chrono::nanoseconds(Clock::now() - t1).count() / 1e9) << endl;
     }
-    finalH = saveK_finalH;
+    finalH = saveJ_finalH;
 }
 
 void RBF_Core::Set_HermiteApprox_Lambda(double hermite_ls) {
@@ -226,15 +229,15 @@ void RBF_Core::Set_HermiteApprox_Lambda(double hermite_ls) {
     {
         Set_Actual_Hermite_LSCoef(hermite_ls);
         auto t1 = Clock::now();
-        cout << "setting K, HermiteApprox_Lambda" << endl;
+        cout << "setting J, HermiteApprox_Lambda" << endl;
         if (ls_coef > 0) {
             arma::sp_mat eye;
             eye.eye(npt, npt);
             if (ls_coef > 0) {
-                arma::mat tmpdI = inv(eye + (ls_coef + User_Lambda) * K00);
-                K = K11 - (ls_coef + User_Lambda) * (K01.t() * tmpdI * K01);
+                arma::mat tmpdI = inv(eye + (ls_coef + User_Lambda) * J00);
+                J = J11 - (ls_coef + User_Lambda) * (J01.t() * tmpdI * J01);
             } else {
-                K = saveK_finalH;
+                J = saveJ_finalH;
             }
         }
         cout << "solved: " << (std::chrono::nanoseconds(Clock::now() - t1).count() / 1e9) << endl;
@@ -248,41 +251,49 @@ void RBF_Core::Set_Hermite_PredictNormal(vector<double> &pts) {
     Set_HermiteRBF(pts);
 
     auto t1 = Clock::now();
-    cout << "setting K" << endl;
+    cout << "setting J" << endl;
 
 
     if (!isnewformula) {
         arma::mat D = N.t() * Minv;
-        K = Minv - D.t() * inv(D * N) * D;
-        K = K.submat(npt, npt, npt * 4 - 1, npt * 4 - 1);
-        finalH = saveK_finalH = K;
+        J = Minv - D.t() * inv(D * N) * D;
+        J = J.submat(npt, npt, npt * 4 - 1, npt * 4 - 1);
+        finalH = saveJ_finalH = J;
 
     } else {
         cout << "using new formula" << endl;
-        bigM.zeros((npt + 1) * 4, (npt + 1) * 4);
-        bigM.submat(0, 0, npt * 4 - 1, npt * 4 - 1) = M;
-        bigM.submat(0, npt * 4, (npt) * 4 - 1, (npt + 1) * 4 - 1) = N;
-        bigM.submat(npt * 4, 0, (npt + 1) * 4 - 1, (npt) * 4 - 1) = N.t();
+        A.zeros((npt + 1) * 4, (npt + 1) * 4);
+        A.submat(0, 0, npt * 4 - 1, npt * 4 - 1) = M;
+        A.submat(0, npt * 4, (npt) * 4 - 1, (npt + 1) * 4 - 1) = N;
+        A.submat(npt * 4, 0, (npt + 1) * 4 - 1, (npt) * 4 - 1) = N.t();
 
-        //for(int i=0;i<4;++i)bigM(i+(npt)*4,i+(npt)*4) = 1;
+        //for(int i=0;i<4;++i)A(i+(npt)*4,i+(npt)*4) = 1;
 
         auto t2 = Clock::now();
-        bigMinv = inv(bigM);
-        cout << "bigMinv: " << (setK_time = std::chrono::nanoseconds(Clock::now() - t2).count() / 1e9) << endl;
-        bigM.clear();
-        Minv = bigMinv.submat(0, 0, npt * 4 - 1, npt * 4 - 1);
-        Ninv = bigMinv.submat(0, npt * 4, (npt) * 4 - 1, (npt + 1) * 4 - 1);
+        Ainv = inv(A);
 
-        bigMinv.clear();
-        //K = Minv - Ninv *(N.t()*Minv);
-        K = Minv;
-        K00 = K.submat(0, 0, npt - 1, npt - 1);
-        K01 = K.submat(0, npt, npt - 1, npt * 4 - 1);
-        K11 = K.submat(npt, npt, npt * 4 - 1, npt * 4 - 1);
+        cout << "Ainv: " << (setK_time = std::chrono::nanoseconds(Clock::now() - t2).count() / 1e9) << endl;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                cout << setprecision(3) << Ainv(i, j) << " ";
+            }
+            cout << endl;
+        }
+
+        A.clear();
+        Minv = Ainv.submat(0, 0, npt * 4 - 1, npt * 4 - 1);
+        Ninv = Ainv.submat(0, npt * 4, (npt) * 4 - 1, (npt + 1) * 4 - 1);
+
+//        Ainv.clear();
+        //J = Minv - Ninv *(N.t()*Minv);
+        J = Minv;
+        J00 = J.submat(0, 0, npt - 1, npt - 1);
+        J01 = J.submat(0, npt, npt - 1, npt * 4 - 1);
+        J11 = J.submat(npt, npt, npt * 4 - 1, npt * 4 - 1);
 
         M.clear();
         N.clear();
-        cout << "K11: " << K11.n_cols << endl;
+        cout << "J11: " << J11.n_cols << endl;
 
 
         //Set_Hermite_DesignedCurve();
@@ -292,17 +303,17 @@ void RBF_Core::Set_Hermite_PredictNormal(vector<double> &pts) {
 
 //		arma::vec eigval, ny;
 //		arma::mat eigvec;
-//		ny = eig_sym( eigval, eigvec, K);
+//		ny = eig_sym( eigval, eigvec, J);
 //		cout<<ny<<endl;
 
-        cout << "K: " << K.n_cols << endl;
+        cout << "J: " << J.n_cols << endl;
     }
 
 
 
 
-    //K = ( K.t() + K )/2;
-    cout << "solve K total: " << (setK_time = std::chrono::nanoseconds(Clock::now() - t1).count() / 1e9) << endl;
+    //J = ( J.t() + J )/2;
+    cout << "solve J total: " << (setK_time = std::chrono::nanoseconds(Clock::now() - t1).count() / 1e9) << endl;
     return;
 
 }
@@ -321,7 +332,7 @@ int RBF_Core::Solve_Hermite_PredictNormal_UnitNorm() {
     arma::mat eigvec;
 
     if (!isuse_sparse) {
-        ny = eig_sym(eigval, eigvec, K);
+        ny = eig_sym(eigval, eigvec, J);
     } else {
 //		cout<<"use sparse eigen"<<endl;
 //        int k = 4;
@@ -401,11 +412,9 @@ double optfunc_Hermite(const vector<double> &x, vector<double> &grad, void *fdat
 
         for (int i = 0; i < n; ++i) {
             auto p_scsc = sina_cosa_sinb_cosb.data() + i * 4;
-
             //            int ind = i*3;
             //            grad[i*2] = a2(ind) * p_scsc[1] * p_scsc[3] + a2(ind+1) * p_scsc[1] * p_scsc[2] - a2(ind+2) * p_scsc[0];
             //            grad[i*2+1] = -a2(ind) * p_scsc[0] * p_scsc[2] + a2(ind+1) * p_scsc[0] * p_scsc[3];
-
             grad[i * 2] = a2(i) * p_scsc[1] * p_scsc[3] + a2(i + n) * p_scsc[1] * p_scsc[2] - a2(i + n * 2) * p_scsc[0];
             grad[i * 2 + 1] = -a2(i) * p_scsc[0] * p_scsc[2] + a2(i + n) * p_scsc[0] * p_scsc[3];
 
@@ -488,7 +497,7 @@ void RBF_Core::Set_RBFCoef(arma::vec &y) {
     } else {
 
         if (User_Lambda > 0)
-            y.subvec(0, npt - 1) = -User_Lambda * dI * K01 * y.subvec(npt, npt * 4 - 1);
+            y.subvec(0, npt - 1) = -User_Lambda * dI * J01 * y.subvec(npt, npt * 4 - 1);
         a = Minv * y;
         b = Ninv.t() * y;
 
@@ -499,8 +508,8 @@ void RBF_Core::Set_RBFCoef(arma::vec &y) {
 
 
 int RBF_Core::Lambda_Search_GlobalEigen() {
-
-    vector<double> lambda_list({ 0.01, 0.1, 1});
+//    vector<double> lambda_list({0.01});
+    vector<double> lambda_list({0.001, 0.01, 0.1, 1});
     //vector<double>lambda_list({  0.5,0.6,0.7,0.8,0.9,1,1.1,1.5,2,3});
     //lambda_list.clear();
     //for(double i=1.5;i<2.5;i+=0.1)lambda_list.push_back(i);
@@ -577,5 +586,7 @@ void RBF_Core::Print_LamnbdaSearchTest(string fname) {
     fout.close();
 
 }
+
+
 
 

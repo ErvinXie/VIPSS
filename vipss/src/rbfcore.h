@@ -140,20 +140,20 @@ public:
 
     arma::mat Minv; // J
     arma::mat P;
-    arma::mat K; // J
+    arma::mat J; // J
     arma::mat bprey;
-    arma::mat saveK;
-    arma::mat saveK_finalH;
+    arma::mat saveJ;
+    arma::mat saveJ_finalH;
     arma::mat finalH;
 
     arma::mat RQ;
 
-    arma::mat bigM; // A
-    arma::mat bigMinv; // A inv
+    arma::mat A; // A
+    arma::mat Ainv; // A inv
     arma::mat Ninv; // K
-    arma::mat K00; // J00
-    arma::mat K01; // J01
-    arma::mat K11; // J11
+    arma::mat J00; // J00
+    arma::mat J01; // J01
+    arma::mat J11; // J11
     arma::mat dI;
 
 
@@ -287,9 +287,11 @@ public:
 
     int InjectData(vector<double> &pts, RBF_Paras para);
 
-    void BuildK(RBF_Paras para);
+    void BuildJ(RBF_Paras para);
 
-    void InitNormal(RBF_Paras para);
+    void AddPointsAndBuildJnew(vector<double> &newpts);
+
+    void InitAndOptNormal(RBF_Paras para);
 
     void OptNormal(int method);
 

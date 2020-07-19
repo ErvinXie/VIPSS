@@ -80,10 +80,28 @@ int main(int argc, char **argv) {
 
     readXYZ(infilename, Vs);
 
-    rbf_core.InjectData(Vs, para);
-    rbf_core.BuildK(para);
-    rbf_core.InitNormal(para);
-    rbf_core.OptNormal(0);
+    vector<vector<double> > vss;
+    vss.resize(2);
+    for (int i = 0; i < Vs.size(); i++) {
+//        if (i < (Vs.size() / 3 / 4) * 3) {
+//            vss[0].push_back(Vs[i]);
+//        }else{
+//            vss[1].push_back(Vs[i]);
+//        }
+        if ((i / 3) % 4 == 0) {
+            vss[0].push_back(Vs[i]);
+        } else {
+            vss[1].push_back(Vs[i]);
+        }
+    }
+    cout << "vss sizes: " << Vs.size() << " " << vss[0].size() << " " << vss[1].size() << endl;
+    cout << Vs.front() << endl;
+    rbf_core.InjectData(vss[0], para);
+
+    rbf_core.BuildJ(para);
+    rbf_core.AddPointsAndBuildJnew(vss[1]);
+
+    rbf_core.InitAndOptNormal(para);
 
     rbf_core.Write_Hermite_NormalPrediction(outpath + pcname + "_normal", 1);
 
@@ -96,7 +114,6 @@ int main(int argc, char **argv) {
         rbf_core.Surfacing(surfacing_method, n_voxel_line);
         rbf_core.Write_Surface(outpath + pcname + "_surface");
     }
-
 
 
     if (is_outputtime) {

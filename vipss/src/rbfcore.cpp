@@ -52,7 +52,6 @@ double XCube_Kernel_2p(const double *p1, const double *p2) {
 }
 
 void XCube_Gradient_Kernel_2p(const double *p1, const double *p2, double *G) {
-
     double len_dist = MyUtility::_VerticesDistance(p1, p2);
     for (int i = 0; i < 3; ++i)
         G[i] = 3 * len_dist * (p1[i] - p2[i]);
@@ -79,10 +78,12 @@ void XCube_Hessian_Kernel_2p(const double *p1, const double *p2, double *H) {
     if (len_dist < 1e-8) {
         for (int i = 0; i < 9; ++i)H[i] = 0;
     } else {
-        for (int i = 0; i < 3; ++i)
-            for (int j = 0; j < 3; ++j)
-                if (i == j)H[i * 3 + j] = 3 * pow(diff[i], 2) / len_dist + 3 * len_dist;
-                else H[i * 3 + j] = 3 * diff[i] * diff[j] / len_dist;
+        for (int i = 0; i < 3; ++i) {
+            H[i * 3 + i] = 3 * pow(diff[i], 2) / len_dist + 3 * len_dist;
+            for (int j = i + 1; j < 3; ++j) {
+                H[j * 3 + i] = H[i * 3 + j] = 3 * diff[i] * diff[j] / len_dist;
+            }
+        }
     }
 
 
@@ -220,6 +221,7 @@ inline double RBF_Core::Dist_Function(const double *p) {
             for (int k = j; k < 4; ++k)
                 kb(ind++) = buf[j] * buf[k];
     }
+    // kb = 1,x,y,z,xx,xy,xz,yy,yz,zz
     double poly_part = dot(kb, b);
 
 
