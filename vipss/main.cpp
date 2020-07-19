@@ -96,10 +96,10 @@ int main(int argc, char **argv) {
     }
     cout << "vss sizes: " << Vs.size() << " " << vss[0].size() << " " << vss[1].size() << endl;
     cout << Vs.front() << endl;
-    rbf_core.InjectData(vss[0], para);
+    rbf_core.InjectData(Vs, para);
 
     rbf_core.BuildJ(para);
-    rbf_core.AddPointsAndBuildJnew(vss[1]);
+//    rbf_core.AddPointsAndBuildJnew(vss[1]);
 
     rbf_core.InitAndOptNormal(para);
 

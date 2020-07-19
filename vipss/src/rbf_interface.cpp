@@ -69,28 +69,28 @@ void RBF_Core::AddPointsAndBuildJnew(vector<double> &newpts) {
 
                 Kernal_Gradient_Function_2p(pi, pj, temp);
                 for (int l = 0; l < 3; l++) {
-                    B(i, j + k + l * k) = temp[l];
+                    B(i, k + j * 3 + l) = temp[l];
                 }
 
                 Kernal_Gradient_Function_2p(pj, pi, temp);
                 for (int l = 0; l < 3; l++) {
-                    B(i + n + l * n, j) = temp[l];
+                    B(n + i * 3 + l, j) = temp[l];
                 }
 
                 Kernal_Hessian_Function_2p(pi, pj, temp);
                 for (int p = 0; p < 3; p++) {
                     for (int q = 0; q < 3; q++) {
-                        B(i + n + p * n, j + k + q * k) = -*(temp + p * 3 + q);
+                        B(n + i * 3 + p, k + j * 3 + q) = -*(temp + p * 3 + q);
                     }
                 }
             }
         }
         for (int i = 0; i < k; i++) {
             double *pi = pts.data() + i * 3;
-            B(4 * n, i) = 1;
+            B(4 * n + 3, i) = 1;
             for (int j = 0; j < 3; j++) {
-                B(4 * n + j + 1, i) = pi[j];
-                B(4 * n + j + 1, j * k + i) = -1;
+                B(4 * n + j, i) = pi[j];
+                B(4 * n + j, i * 3 + j) = -1;
             }
         }
     }
@@ -102,21 +102,22 @@ void RBF_Core::AddPointsAndBuildJnew(vector<double> &newpts) {
             double *pi = newpts.data() + i * 3;
             for (int j = 0; j < k; j++) {
                 double *pj = newpts.data() + j * 3;
-                D(i, j) = Kernal_Function_2p(pi, pj);
 
+                D(i, j) = Kernal_Function_2p(pi, pj);
                 Kernal_Gradient_Function_2p(pi, pj, temp);
                 for (int l = 0; l < 3; l++) {
-                    D(i, j + k + l * k) = temp[l];
+                    D(i, k + j * 3 + l) = temp[l];
                 }
 
                 Kernal_Gradient_Function_2p(pj, pi, temp);
                 for (int l = 0; l < 3; l++) {
-                    D(i + k + l * k, j) = temp[l];
+                    D(k + i * 3 + l, j) = temp[l];
                 }
+
                 Kernal_Hessian_Function_2p(pj, pi, temp);
                 for (int p = 0; p < 3; p++) {
                     for (int q = 0; q < 3; q++) {
-                        D(i + k + p * k, j + k + q * k) = -*(temp + p * 3 + q);
+                        D(k + i * 3 + p, k + j * 3 + q) = -*(temp + p * 3 + q);
                     }
                 }
             }
@@ -155,13 +156,20 @@ void RBF_Core::AddPointsAndBuildJnew(vector<double> &newpts) {
     vector<vector<int> > submatrix_index = {
             {0,             0,             0,             0,             n,     n},//M00
             {0,             n,             0,             4 * n + 4,     n,     k},//M00
+            {n,             n,             4 * n + 4,     4 * n + 4,     k,     k},//M00
+
             {0,             n + k,         0,             n,             n,     3 * n},//M01
             {0,             n + k + 3 * n, 0,             4 * n + 4 + k, n,     3 * k},//M01
+            {n,             n + k,         4 * n + 4,     n,             k,     3 * n},//M01
+            {n,             n + k + 3 * n, 4 * n + 4,     4 * n + 4 + k, k,     3 * k},//M01
+
             {0,             4 * (n + k),   0,             4 * n,         n,     4},//N0
             {n,             4 * (n + k),   4 * n + 4,     4 * n,         k,     4},//N0
-            {n,             n,             4 * n + 4,     4 * n + 4,     k,     k},//M00
-            {n,             n + k,         4 * n + 4,     n,             k,     3 * n},//M01
-            {n,             n + k + 3 * n, 4 * n + 4,     4 * n + 4 + k, k,     3 * n},//M01
+
+            {n + k,         4 * (n + k),   n,             4 * n,         3 * n, 4},//N1
+            {n + k + 3 * n, 4 * (n + k),   4 * n + 4 + k, 4 * n,         3 * k, 4},//N1
+
+
             {n + k,         n + k,         n,             n,             3 * n, 3 * n},//M11
             {n + k,         n + k + 3 * n, n,             4 * n + 4 + k, 3 * n, 3 * k},//M11
             {n + k + 3 * n, n + k + 3 * n, 4 * n + 4 + k, 4 * n + 4 + k, k,     k},//M11
@@ -179,7 +187,7 @@ void RBF_Core::AddPointsAndBuildJnew(vector<double> &newpts) {
         cout << endl;
     }
     Ainv = newAinv;
-    npt = pts.size()/3;
+    npt = pts.size() / 3;
 
     Minv = Ainv.submat(0, 0, npt * 4 - 1, npt * 4 - 1);
     Ninv = Ainv.submat(0, npt * 4, (npt) * 4 - 1, (npt + 1) * 4 - 1);

@@ -185,7 +185,6 @@ double RBF_Core::Dist_Function(const double x, const double y, const double z) {
 
 
 inline double RBF_Core::Dist_Function(const double *p) {
-
     n_evacalls++;
     double *p_pts = pts.data();
     static arma::vec kern(npt), kb;
@@ -197,31 +196,32 @@ inline double RBF_Core::Dist_Function(const double *p) {
             Kernal_Gradient_Function_2p(p, p_pts + i * 3, G);
             //for(int j=0;j<3;++j)kern(npt+i*3+j) = -G[j];
             for (int j = 0; j < 3; ++j)
-                kern(npt + i + j * npt) = G[j];
+                kern(npt + i * 3 + j) = G[j];
         }
     } else {
-        kern.set_size(npt);
-        for (int i = 0; i < npt; ++i)
-            kern(i) = Kernal_Function_2p(p_pts + i * 3, p);
+//        kern.set_size(npt);
+//        for (int i = 0; i < npt; ++i)
+//            kern(i) = Kernal_Function_2p(p_pts + i * 3, p);
     }
 
     double loc_part = dot(kern, a);
 
     if (polyDeg == 1) {
+        //here for hermite
         kb.set_size(4);
         for (int i = 0; i < 3; ++i)
             kb(i + 1) = p[i];
         kb(0) = 1;
     } else if (polyDeg == 2) {
-        vector<double> buf(4, 1);
-        int ind = 0;
-        kb.set_size(10);
-        for (int j = 0; j < 3; ++j)buf[j + 1] = p[j];
-        for (int j = 0; j < 4; ++j)
-            for (int k = j; k < 4; ++k)
-                kb(ind++) = buf[j] * buf[k];
+//        vector<double> buf(4, 1);
+//        int ind = 0;
+//        kb.set_size(10);
+//        for (int j = 0; j < 3; ++j)buf[j + 1] = p[j];
+//        for (int j = 0; j < 4; ++j)
+//            for (int k = j; k < 4; ++k)
+//                kb(ind++) = buf[j] * buf[k];
+        // kb = 1,x,y,z,xx,xy,xz,yy,yz,zz
     }
-    // kb = 1,x,y,z,xx,xy,xz,yy,yz,zz
     double poly_part = dot(kb, b);
 
 
