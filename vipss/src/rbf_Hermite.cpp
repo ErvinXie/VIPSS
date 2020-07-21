@@ -86,7 +86,7 @@ bool RBF_Core::Write_Hermite_NormalPrediction(string fname, int mode) {
 void RBF_Core::Set_HermiteRBF(vector<double> &pts) {
     int n = pts.size() / 3;
     cout << "Set_HermiteRBF" << endl;
-    //for(auto a:pts)cout<<a<<' ';cout<<endl;
+
     isHermite = true;
 
     M.set_size(n * 4, n * 4);
@@ -100,31 +100,16 @@ void RBF_Core::Set_HermiteRBF(vector<double> &pts) {
     double G[3];
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-
             Kernal_Gradient_Function_2p(p_pts + i * 3, p_pts + j * 3, G);
-            //            int jind = j*3+npt;
-            //            for(int k=0;k<3;++k)M(i,jind+k) = -G[k];
-            //            for(int k=0;k<3;++k)M(jind+k,i) = G[k];
-
             for (int k = 0; k < 3; ++k)
-                M(i, n + j * 3 + k) = G[k];
-            for (int k = 0; k < 3; ++k)
-                M(n + j * 3 + k, i) = G[k];
-
+                M(n + j * 3 + k, i) = M(i, n + j * 3 + k) = G[k];
         }
     }
 
     double H[9];
     for (int i = 0; i < n; ++i) {
         for (int j = i; j < n; ++j) {
-
             Kernal_Hessian_Function_2p(p_pts + i * 3, p_pts + j * 3, H);
-            //            int iind = i*3+npt;
-            //            int jind = j*3+npt;
-            //            for(int k=0;k<3;++k)
-            //                for(int l=0;l<3;++l)
-            //                    M(jind+l,iind+k) = M(iind+k,jind+l) = -H[k*3+l];
-
             for (int k = 0; k < 3; ++k)
                 for (int l = 0; l < 3; ++l)
                     M(n + j * 3 + l, n + i * 3 + k)
@@ -140,7 +125,7 @@ void RBF_Core::Set_HermiteRBF(vector<double> &pts) {
 
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < 3; ++j)
-            N(i, j) = pts[i * 3 + j + 1];
+            N(i, j + 1) = pts[i * 3 + j];
         N(i, 0) = 1;
     }
     for (int i = 0; i < n; ++i) {
@@ -495,15 +480,11 @@ void RBF_Core::Set_RBFCoef(arma::vec &y) {
         b = bprey * y;
         a = Minv * (y - N * b);
     } else {
-
         if (User_Lambda > 0)
             y.subvec(0, npt - 1) = -User_Lambda * dI * J01 * y.subvec(npt, npt * 4 - 1);
         a = Minv * y;
         b = Ninv.t() * y;
-
     }
-
-
 }
 
 

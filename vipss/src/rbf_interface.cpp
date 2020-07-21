@@ -33,7 +33,6 @@ void RBF_Core::BuildJ(RBF_Paras para) {
     auto t1 = Clock::now();
 
     switch (curMethod) {
-
         case Hermite_UnitNormal:
             Set_Hermite_PredictNormal(pts);
             break;

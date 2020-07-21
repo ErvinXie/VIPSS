@@ -221,6 +221,7 @@ inline double RBF_Core::Dist_Function(const double *p) {
 //            for (int k = j; k < 4; ++k)
 //                kb(ind++) = buf[j] * buf[k];
         // kb = 1,x,y,z,xx,xy,xz,yy,yz,zz
+
     }
     double poly_part = dot(kb, b);
 
